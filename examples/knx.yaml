@@ -1,0 +1,58 @@
+substitutions:
+  node_name: knx-example
+
+esphome:
+  name: ${node_name}
+
+host:
+
+logger:
+  # valid options are 'NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'VERBOSE', 'VERY_VERBOSE'.
+  level: DEBUG
+
+external_components:
+  - components: [ knx ]
+    source:
+      type: local
+      path: ../components
+
+uart:
+  - id: uart_knx
+    baud_rate: 19200
+    parity: even
+#    rx_pin: GPIO07
+#    tx_pin: GPIO08
+    port: "/dev/ttyS0"
+
+knx:
+  id: knxd
+  uart_id: uart_knx
+  use_address: 10.10.1
+#  listen_group_address:
+#    - "01/04/00"
+#  lambda: |-
+#    KnxTelegram* telegram = knx.get_received_telegram();
+#    ESP_LOGD("KNX", "group: %s",telegram->get_target_group());
+#    if(telegram->get_target_group() == "0/0/3" ){
+#      ESP_LOGD("KNX", "KNX 0/0/3 status: %d", telegram->get_bool());
+#    }
+#    return;
+
+binary_sensor:
+  - platform: knx
+    id: knx_switch_sensor
+    name: "KNX Switch"
+    group_address: "1/04/11"
+    dpt: "1.001"
+
+sensor:
+  - platform: knx
+    id: knx_temperature_sensor
+    name: "KNX Temperature"
+    group_address: "1/04/08"
+    dpt: "9.001"
+  - platform: knx
+    id: knx_percentage_sensor
+    name: "KNX Percentage"
+    group_address: "1/04/10"
+    dpt: "5.001"
