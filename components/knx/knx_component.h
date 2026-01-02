@@ -107,11 +107,11 @@ class KnxComponent : public Component, public uart::UARTDevice {
     // KNXTpUART - adapted
     KnxTelegram* _tg;       // for normal communication
     KnxTelegram* _tg_ptp;   // for PTP sequence confirmation
-    int _source_area;
-    int _source_line;
-    int _source_member;
-    int _listen_group_addresses[MAX_LISTEN_GROUP_ADDRESSES][3];
-    int _listen_group_address_count;
+    uint8_t _source_area;
+    uint8_t _source_line;
+    uint8_t _source_member;
+    uint8_t _listen_group_addresses[MAX_LISTEN_GROUP_ADDRESSES][3];
+    uint8_t _listen_group_address_count;
     bool _listen_to_broadcasts;
     optional<lambda_writer_t> lambda_writer_{};
     std::vector<std::tuple<uint16_t, KnxProcessor*>> processors;

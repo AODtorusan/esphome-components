@@ -33,7 +33,7 @@ namespace knx {
   }
 
   void KnxComponent::setup() {
-    uint8_t result = sscanf( this->use_address_.c_str(), "%d.%d.%d", &this->_source_area, &this->_source_line, &this->_source_member );
+    uint8_t result = sscanf( this->use_address_.c_str(), "%hhu.%hhu.%hhu", &this->_source_area, &this->_source_line, &this->_source_member );
     assert(result == 3);
     this->_tg = new KnxTelegram();
     this->_tg_ptp = new KnxTelegram();
@@ -526,7 +526,7 @@ namespace knx {
     uint8_t mainGroup = 0;
     uint8_t middleGroup = 0;
     uint8_t subGroup = 0;
-    uint8_t result = sscanf( group_address.c_str(), "%d/%d/%d", &mainGroup, &middleGroup, &subGroup );
+    uint8_t result = sscanf( group_address.c_str(), "%hhu/%hhu/%hhu", &mainGroup, &middleGroup, &subGroup );
     assert( result == 3 );
     this->add_listen_group_address(mainGroup, middleGroup, subGroup);
   }

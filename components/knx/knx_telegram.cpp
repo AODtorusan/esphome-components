@@ -95,7 +95,7 @@ void KnxTelegram::set_target_group_address(const std::string& group_address) {
   uint8_t mainGroup = 0;
   uint8_t middleGroup = 0;
   uint8_t subGroup = 0;
-  uint8_t result = sscanf( group_address.c_str(), "%d/%d/%d", &mainGroup, &middleGroup, &subGroup );
+  uint8_t result = sscanf( group_address.c_str(), "%hhu/%hhu/%hhu", &mainGroup, &middleGroup, &subGroup );
   assert( result == 3 );
   return this->set_target_group_address(mainGroup, middleGroup, subGroup);
 }
@@ -110,7 +110,7 @@ void KnxTelegram::set_target_individual_address(const std::string& group_address
   uint8_t area = 0;
   uint8_t line = 0;
   uint8_t member = 0;
-  uint8_t result = sscanf( group_address.c_str(), "%d/%d/%d", &area, &line, &member );
+  uint8_t result = sscanf( group_address.c_str(), "%hhu/%hhu/%hhu", &area, &line, &member );
   assert( result == 3 );
   return this->set_target_individual_address(area, line, member);
 }

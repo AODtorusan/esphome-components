@@ -36,7 +36,7 @@ void KnxSensor::set_knx( KnxComponent* knx ) {
 }
 
 void KnxSensor::set_group_address( std::string group_address ) {
-    uint8_t result = sscanf( group_address.c_str(), "%d/%d/%d", &this->target_main_group, &this->target_middle_group, &this->target_sub_group );
+    uint8_t result = sscanf( group_address.c_str(), "%hhu/%hhu/%hhu", &this->target_main_group, &this->target_middle_group, &this->target_sub_group );
     assert( result == 3 );
     this->target_address = ((target_main_group << 3) | target_middle_group) << 8 | target_sub_group;
 }
