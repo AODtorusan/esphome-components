@@ -10,7 +10,7 @@ from esphome.components import uart
 from esphome.const import CONF_ID, CONF_UART_ID, CONF_USE_ADDRESS, CONF_LAMBDA
 
 
-CODEOWNERS = ["@fxmike@gmail.com"]
+CODEOWNERS = ["@aodtorusan"]
 DEPENDENCIES = ["uart"]
 
 knx_ns = cg.esphome_ns.namespace("knx")

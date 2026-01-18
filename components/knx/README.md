@@ -3,10 +3,16 @@
 
 # knx - Component for esphome
 
-## Esphome Component that allow comunication using Knx - Twisted Pair
+<a href="https://opensource.org"><img height="150" align="left" src="https://opensource.org/files/OSIApprovedCropped.png" alt="Open Source Initiative Approved License logo"></a>
+[![License - MIT License](https://img.shields.io/badge/License-MIT-9400d3.svg)](https://spdx.org/licenses/MIT.html)
+
 This component is written for ESPHome to enable communication via KNX TP(Twisted Pair).
 
-This is based on [custom-esphome](https://github.com/fxmike08/custom-esphome) and was updated and extended for better esphome integratation. (The work of fxmike08 is based on  [KnxTpUart](https://github.com/majuss/KnxTpUart) )
+Open Source software: [MIT License](https://spdx.org/licenses/MIT.html)
+
+## &nbsp;
+
+This is based on [custom-esphome](https://github.com/fxmike08/custom-esphome) and was updated and extended for better esphome integratation. (The work of fxmike08 is based on [KnxTpUart](https://github.com/majuss/KnxTpUart) )
 
 ### Knx component configuration:
 
