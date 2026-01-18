@@ -5,10 +5,23 @@ on:
     - cron: '0 5 * * MON'  # At 05:00 UTC on Monday
 
 jobs:
-  docker:
+  # setup:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.matrix.outputs.value }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - id: matrix
+  #       run: |
+  #         echo "value=$(ls -1 examples/*.yaml | jq -nRc '[inputs]')" >> "$GITHUB_OUTPUT"
+  #     - run: |
+  #         echo "${{ steps.matrix.outputs.value }}"
+  build-examples:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        #example_device: ${{fromJSON(needs.setup.outputs.matrix)}}
         example_device:
           - examples/knx.yaml
     steps:
