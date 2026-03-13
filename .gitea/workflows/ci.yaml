@@ -5,20 +5,34 @@ on:
     - cron: '0 5 * * MON'  # At 05:00 UTC on Monday
 
 jobs:
-  # setup:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     matrix: ${{ steps.matrix.outputs.value }}
-  #   steps:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
   #     - name: Checkout
   #       uses: actions/checkout@v4
   #     - id: matrix
   #       run: |
   #         echo "value=$(ls -1 examples/*.yaml | jq -nRc '[inputs]')" >> "$GITHUB_OUTPUT"
-  #     - run: |
-  #         echo "${{ steps.matrix.outputs.value }}"
+      - name: Set esphome version
+        id: esphome_version
+        run: |
+          # Urg the python version is too old for this ...
+          #ESPHOME_VERSION="$(python3 -m pip index versions --json esphome  | jq -r '.latest')"
+          ESPHOME_VERSION="$(python3 -m pip index versions esphome | sed -nE 's|esphome \((\S+)\)|\1|p')"
+          echo "ESPHOME_VERSION_FULL=$ESPHOME_VERSION" >> $GITHUB_OUTPUT
+          echo "ESPHOME_VERSION_MINOR=$(echo "$ESPHOME_VERSION" | grep -oP '\d+\.\d+')" >> $GITHUB_OUTPUT
+      - name: Output variables
+        run: |
+          #echo "steps.matrix.outputs.value=${{ steps.matrix.outputs.value }}"
+          echo "steps.esphome_version.outputs.ESPHOME_VERSION_FULL=${{ steps.esphome_version.outputs.ESPHOME_VERSION_FULL }}"
+          echo "steps.esphome_version.outputs.ESPHOME_VERSION_MINOR=${{ steps.esphome_version.outputs.ESPHOME_VERSION_MINOR }}"
+    outputs:
+      esphome_version_full: ${{ steps.esphome_version.outputs.ESPHOME_VERSION_FULL }}
+      esphome_version_minor: ${{ steps.esphome_version.outputs.ESPHOME_VERSION_MINOR }}
+      #matrix: ${{ steps.matrix.outputs.value }}
   build-examples:
     runs-on: ubuntu-latest
+    needs: setup
     strategy:
       matrix:
         #example_device: ${{fromJSON(needs.setup.outputs.matrix)}}
@@ -31,8 +45,22 @@ jobs:
         run: |
           python3 -m venv .venv
           . .venv/bin/activate
-          pip install esphome
+          pip install esphome=="${{ needs.setup.outputs.esphome_version_full }}"
       - name: Compile ESPHome firmware
         run: |
           . .venv/bin/activate
           esphome compile ${{ matrix.example_device }}
+  tag-commits:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Tag with ESPHome version
+        run: |
+          git config user.name "Gitea Actor"
+          git config user.email "actor@gitea.angelcorp.be"
+          git tag "esphome-${{ needs.setup.outputs.esphome_version_full }}"
+          git tag "esphome-${{ needs.setup.outputs.esphome_version_minor }}"
+          git tag "esphome-latest"
+          git push -f --atomic origin "esphome-${{ needs.setup.outputs.esphome_version_full }}" "esphome-${{ needs.setup.outputs.esphome_version_minor }}" "esphome-latest"
