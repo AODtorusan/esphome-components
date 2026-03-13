@@ -8,11 +8,6 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - id: matrix
-  #       run: |
-  #         echo "value=$(ls -1 examples/*.yaml | jq -nRc '[inputs]')" >> "$GITHUB_OUTPUT"
       - name: Set esphome version
         id: esphome_version
         run: |
@@ -29,13 +24,11 @@ jobs:
     outputs:
       esphome_version_full: ${{ steps.esphome_version.outputs.ESPHOME_VERSION_FULL }}
       esphome_version_minor: ${{ steps.esphome_version.outputs.ESPHOME_VERSION_MINOR }}
-      #matrix: ${{ steps.matrix.outputs.value }}
   build-examples:
     runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
-        #example_device: ${{fromJSON(needs.setup.outputs.matrix)}}
         example_device:
           - examples/knx.yaml
     steps:
@@ -49,7 +42,11 @@ jobs:
       - name: Compile ESPHome firmware
         run: |
           . .venv/bin/activate
-          esphome compile ${{ matrix.example_device }}
+          for example in $(ls -1 examples/*.yaml) ; do
+            echo "::group::Example: $example"
+            esphome compile "$example"
+            echo "::endgroup::"
+          done
   tag-commits:
     runs-on: ubuntu-latest
     needs: setup
