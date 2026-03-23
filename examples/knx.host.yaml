@@ -3,6 +3,10 @@ substitutions:
 
 esphome:
   name: ${node_name}
+  # This is development specific
+  build_path: ./../../build
+  environment_variables:
+    COMPILATIONDB_INCLUDE_TOOLCHAIN: "True"
 
 host:
 

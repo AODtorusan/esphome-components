@@ -30,8 +30,8 @@ Usage example :
   external_components:
     - source:
         type: git
-        ref: main
-        url: https://github.com/fxmike08/custom-esphome
+        ref: esphome-latest
+        url: https://github.com/AODtorusan/esphome-components
       components: [ knx ]
       refresh: 0s
 ...
