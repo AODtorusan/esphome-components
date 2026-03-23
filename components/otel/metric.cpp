@@ -2,6 +2,7 @@
 
 #include "metric.h"
 
+#include <esphome/core/entity_base.h>
 #include <esphome/core/log.h>
 #include <opentelemetry/proto/metrics/v1/metrics.pb.h>
 
@@ -11,6 +12,11 @@ namespace esphome {
 namespace otel {
 
 static const char* const TAG = "OTLP.metric";
+
+static const std::string STR_TAG_SENSOR_NAME = "sensor_name";
+static const std::string STR_TAG_UNIT = "unit";
+static const std::string STR_TAG_DEVICE_CLASS = "device_class";
+static const std::string STR_TAG_STATE_CLASS = "state_class";
 
 bool nanopb_encode_dpt(pb_ostream_t* stream, const pb_field_t* field, void* const* arg) {
   Metric* metric = (Metric*)(*arg);
@@ -33,9 +39,33 @@ bool nanopb_encode_dpt(pb_ostream_t* stream, const pb_field_t* field, void* cons
   return true;
 }
 
-Metric::Metric(MetricsRecorder* otel, uint_fast16_t max_samples) {
+Metric::Metric(MetricsRecorder* otel, EntityBase* entity, bool name_from_device_class, uint_fast16_t max_samples) {
   this->otel = otel;
   this->max_samples = max_samples;
+
+  // This is not efficient ...
+  char dc_buf[MAX_DEVICE_CLASS_LENGTH];
+  const char* dc = entity->get_device_class_to(dc_buf);
+  std::string device_class(dc);
+
+  if (name_from_device_class) {
+    if (!device_class.empty()) {
+      this->set_name(device_class);
+    } else {
+      this->set_name("unknown");
+    }
+  } else {
+    this->set_name(entity->get_name());
+  }
+
+  this->add_attribute(STR_TAG_SENSOR_NAME, entity->get_name());
+
+  if (!entity->get_unit_of_measurement_ref().empty()) {
+    this->add_attribute(STR_TAG_UNIT, entity->get_unit_of_measurement_ref());
+  }
+  if (!device_class.empty()) {
+    this->add_attribute(STR_TAG_DEVICE_CLASS, device_class);
+  }
 }
 
 void Metric::set_name(std::string name) { this->name = name; }

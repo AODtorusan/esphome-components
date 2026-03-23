@@ -19,7 +19,7 @@
 namespace esphome {
 namespace otel {
 
-class LogsRecorder : public Component, public logger::LogListener {
+class LogsRecorder : public Component {
  public:
   LogsRecorder(http_request::HttpRequestComponent* http, int level);
 
@@ -35,7 +35,7 @@ class LogsRecorder : public Component, public logger::LogListener {
   std::map<std::string, std::string>* get_resource_attributes();
 
   bool submit_logs();
-  void on_log(uint8_t level, const char* tag, const char* message, size_t message_len) override;
+  void on_log(uint8_t level, const char* tag, const char* message, size_t message_len);
   void set_logger_max_depth(uint_fast16_t depth);
   void add_logger_attribute(const std::string& attr_key, const std::string& attr_value);
   std::map<std::string, std::string>* get_logging_attributes();
@@ -44,7 +44,7 @@ class LogsRecorder : public Component, public logger::LogListener {
  protected:
   std::string endpoint;
   http_request::HttpRequestComponent* http;
-  std::list<http_request::Header> headers;
+  std::vector<http_request::Header> headers;
   std::map<std::string, std::string> resource_attributes;
 
   int log_level;

@@ -15,8 +15,6 @@ namespace otel {
 
 static const char* const TAG = "OTLP.binarymetric";
 
-static const std::string STR_TAG_SENSOR_NAME = "sensor_name";
-
 bool nanopb_encode_binarymetric(pb_ostream_t* stream, const pb_field_t* field, void* const* arg) {
   BinaryMetric* esphome_metric = (BinaryMetric*)(*arg);
 
@@ -43,18 +41,8 @@ bool nanopb_encode_binarymetric(pb_ostream_t* stream, const pb_field_t* field, v
 }
 
 BinaryMetric::BinaryMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, max_samples) {
+    : Metric(otel, sensor, name_from_device_class, max_samples) {
   this->sensor = sensor;
-  if (name_from_device_class) {
-    if (!this->sensor->get_device_class_ref().empty()) {
-      this->set_name(sensor->get_device_class_ref());
-    } else {
-      this->set_name("unknown");
-    }
-  } else {
-    this->set_name(sensor->get_name());
-  }
-  this->add_attribute(STR_TAG_SENSOR_NAME, sensor->get_name());
 }
 
 EntityBase* BinaryMetric::get_entity() { return this->sensor; }
@@ -69,7 +57,7 @@ void BinaryMetric::sample() {
 #ifdef OTLP_DROP_UNSYNCHRONIZED
   if (timestamp == 0) return;
 #endif
-  ESP_LOGV(TAG, "Recording sensor value to OTLP of %s: %f", this->sensor->get_name(), value);
+  ESP_LOGV(TAG, "Recording sensor value to OTLP of %s: %f", this->sensor->get_name().c_str(), value);
   this->samples.push_back(std::pair(timestamp, value));
   if (samples.size() > this->max_samples) samples.pop_front();
   this->otel->enable_loop();

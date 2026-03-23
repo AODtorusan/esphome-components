@@ -15,9 +15,6 @@ namespace otel {
 
 static const char *const TAG = "OTLP.numericmetric";
 
-static const std::string STR_TAG_SENSOR_NAME = "sensor_name";
-static const std::string STR_TAG_UNIT = "unit";
-static const std::string STR_TAG_DEVICE_CLASS = "device_class";
 static const std::string STR_TAG_STATE_CLASS = "state_class";
 
 bool nanopb_encode_numericmetric(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
@@ -65,26 +62,8 @@ bool nanopb_encode_numericmetric(pb_ostream_t *stream, const pb_field_t *field, 
 }
 
 NumericMetric::NumericMetric(MetricsRecorder *otel, sensor::Sensor *sensor, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, max_samples) {
+    : Metric(otel, sensor, name_from_device_class, max_samples) {
   this->sensor = sensor;
-
-  if (name_from_device_class) {
-    if (!this->sensor->get_device_class_ref().empty()) {
-      this->set_name(sensor->get_device_class_ref());
-    } else {
-      this->set_name("unknown");
-    }
-  } else {
-    this->set_name(sensor->get_name());
-  }
-  this->add_attribute(STR_TAG_SENSOR_NAME, sensor->get_name());
-
-  if (!this->sensor->get_unit_of_measurement_ref().empty()) {
-    this->add_attribute(STR_TAG_UNIT, this->sensor->get_unit_of_measurement_ref());
-  }
-  if (!this->sensor->get_device_class_ref().empty()) {
-    this->add_attribute(STR_TAG_DEVICE_CLASS, this->sensor->get_device_class_ref());
-  }
   this->add_attribute(STR_TAG_STATE_CLASS, LOG_STR_ARG(state_class_to_string(this->sensor->get_state_class())));
 }
 
@@ -100,7 +79,7 @@ void NumericMetric::sample() {
 #ifdef OTLP_DROP_UNSYNCHRONIZED
   if (timestamp == 0) return;
 #endif
-  ESP_LOGV(TAG, "Recording sensor value to OTLP of %s: %f", this->sensor->get_name(), value);
+  ESP_LOGV(TAG, "Recording sensor value to OTLP of %s: %f", this->sensor->get_name().c_str(), value);
   this->samples.push_back(std::pair(timestamp, value));
   if (samples.size() > this->max_samples) samples.pop_front();
   this->otel->enable_loop();

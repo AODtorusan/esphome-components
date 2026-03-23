@@ -24,7 +24,7 @@ bool nanopb_encode_dpt(pb_ostream_t* stream, const pb_field_t* field, void* cons
 
 class Metric {
  public:
-  Metric(MetricsRecorder* otel, uint_fast16_t max_samples);
+  Metric(MetricsRecorder* otel, EntityBase* entity, bool name_from_device_class, uint_fast16_t max_samples);
 
   virtual EntityBase* get_entity() = 0;
   virtual void install_sample_hook() = 0;

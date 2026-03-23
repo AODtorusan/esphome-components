@@ -120,7 +120,9 @@ bool nanopb_encode_resource_logs(pb_ostream_t* stream, const pb_field_t* field, 
 LogsRecorder::LogsRecorder(http_request::HttpRequestComponent* http, int log_level) {
   this->http = http;
   this->log_level = log_level;
-  logger::global_logger->add_log_listener(this);
+  logger::global_logger->add_log_callback(this, [](void* self, uint8_t level, const char* tag, const char* message, size_t message_len) {
+    static_cast<LogsRecorder*>(self)->on_log(level, tag, message, message_len);
+  });
 }
 
 void LogsRecorder::setup() {

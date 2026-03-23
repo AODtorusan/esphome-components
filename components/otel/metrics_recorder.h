@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
-#include <list>
 #include <string>
 #include <vector>
 
@@ -49,7 +48,7 @@ class MetricsRecorder : public Component {
  protected:
   std::string endpoint;
   http_request::HttpRequestComponent* http;
-  std::list<http_request::Header> headers;
+  std::vector<http_request::Header> headers;
   std::map<std::string, std::string> resource_attributes;
 
   MetricsAutoSensorDetection autodetection = MetricsAutoSensorDetection::SENSORS_ALL;
