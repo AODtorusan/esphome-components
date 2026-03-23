@@ -1,0 +1,41 @@
+
+# Note this config requires https://github.com/open-telemetry/opentelemetry-collector-contrib image:
+#  docker run -p 4318:4318 -v "$(realpath otel-collector.yaml):/etc/otelcol-contrib/config.yaml" otel/opentelemetry-collector-contrib:0.147.0
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # If a data sample / log record timestamp is 0, set it to current time
+  transform/fix_timestamps:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(time, Now()) where time_unix_nano == 0
+    log_statements:
+      - context: log
+        statements:
+          - set(time, Now()) where time_unix_nano == 0
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    metrics/time_fixed:
+      receivers: [otlp]
+      processors: [transform/fix_timestamps]
+      exporters: [debug]
+    logs/time_fixed:
+      receivers: [otlp]
+      processors: [transform/fix_timestamps]
+      exporters: [debug]
+#  telemetry:
+#    logs:
+#      level: debug
+#      development: true
+#      encoding: console

@@ -1,0 +1,68 @@
+substitutions:
+  node_name: otel-example
+
+esphome:
+  name: ${node_name}
+  # This is development specific
+  build_path: ./../../build
+  environment_variables:
+    COMPILATIONDB_INCLUDE_TOOLCHAIN: "True"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: Angelcorp-IOT
+  password: lokaalbeveiligdnetwerkiot
+
+logger:
+  # valid options are 'NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'VERBOSE', 'VERY_VERBOSE'.
+  level: VERY_VERBOSE
+
+web_server:
+
+external_components:
+  - components: [ otel ]
+    source:
+      type: local
+      path: ../components
+
+time:
+  - platform: sntp
+    id: sntp_time
+    servers:
+      - 192.168.210.1
+
+sensor:
+  - platform: uptime
+    name: Uptime
+
+http_request:
+
+otel:
+  # Using your own OTEL collector:
+  #endpoint: http://192.168.200.120:4318
+
+  # Using grafana cloud:
+  # For setting up the correct endpoint & Authorization
+  # See https://grafana.com/docs/grafana-cloud/send-data/otlp/send-data-otlp/
+  endpoint: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+  drop_time_unsynchronized: true # Grafana Cloud refuses samples that are not timestamped with absolute time
+  headers:
+    #Authorization: !secret grafana_cloud_auth
+    Authorization: "Basic ..."
+
+  resource_attributes:
+    # Grafana cloud uses this to index
+    service.namespace: "esphome"
+    service.name: "${node_name}"
+    # Custom attributes
+    device: ${node_name}
+    test: "1"
+  logs:
+    level: INFO
+  metrics: {}
+
+

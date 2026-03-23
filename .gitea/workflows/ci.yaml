@@ -43,6 +43,9 @@ jobs:
         run: |
           . .venv/bin/activate
           for example in $(ls -1 examples/*.yaml) ; do
+            if [[ "$example" =~ examples/(otel-collector.yaml|zzz.yaml) ]]; then
+              continue
+            fi
             echo "::group::Example: $example"
             esphome compile "$example"
             echo "::endgroup::"

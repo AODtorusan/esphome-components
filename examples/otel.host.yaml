@@ -1,0 +1,88 @@
+substitutions:
+  node_name: otel-host-example
+
+esphome:
+  name: ${node_name}
+  # This is development specific
+  build_path: ./../../build
+  environment_variables:
+    COMPILATIONDB_INCLUDE_TOOLCHAIN: "True"
+
+host:
+
+logger:
+  # valid options are 'NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'VERBOSE', 'VERY_VERBOSE'.
+  level: VERBOSE
+
+external_components:
+  - components: [ otel ]
+    source:
+      type: local
+      path: ../components
+
+time:
+  - platform: host
+
+sensor:
+  - platform: uptime
+    name: Uptime
+  - platform: template
+    name: "External sensor"
+    # You can add these to change the OTLP unit and device_class/state_class attribute
+    unit_of_measurement: "bytes"
+    device_class: "data_size"
+    state_class: "measurement"
+  - platform: template
+    id: sensor_internal
+
+binary_sensor:
+  - platform: template
+    name: "External binary sensor"
+  - platform: template
+    id: binary_sensor_internal
+
+http_request:
+  ca_certificate_path: /etc/ssl/certs/ca-certificates.crt
+
+otel:
+  # Using your own OTEL collector:
+  endpoint: http://192.168.200.120:4318
+  protocol: "http/protobuf"
+  headers:
+    "X-Scope-OrgID": "test"
+  drop_time_unsynchronized: false
+
+  # Using grafana cloud:
+  # For setting up the correct endpoint & Authorization
+  # See https://grafana.com/docs/grafana-cloud/send-data/otlp/send-data-otlp/
+  #endpoint: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+  #headers:
+  #  Authorization: !secret grafana_cloud_auth
+
+  resource_attributes:
+    # Grafana cloud uses this to index
+    service.namespace: "esphome"
+    service.name: "${node_name}"
+    # Custom attributes
+    device: ${node_name}
+    test: "1"
+  logs:
+    level: DEBUG
+    max_depth: 50
+    attributes:
+      foo: bar
+  metrics:
+    sample_on_change: true
+    sample_interval: 30
+    max_samples: 100 # per metric
+    autodetection: all
+    name_from_device_class: true
+    sensors:
+      sensor_internal:
+        name: test
+        max_samples: 200
+        attributes:
+          foo: bar
+      binary_sensor_internal:
+        attributes:
+          foo: bar
