@@ -1,0 +1,6 @@
+
+// opentelemetry.proto.metrics.v1.MetricsData.resource_metrics     max_count:1 fixed_count:true
+// opentelemetry.proto.metrics.v1.ScopeMetrics.metrics             max_count:1 fixed_count:true
+
+// opentelemetry.proto.logs.v1.LogsData.resource_logs              max_count:1 fixed_count:true
+// opentelemetry.proto.logs.v1.ResourceLogs.scope_logs             max_count:1 fixed_count:true

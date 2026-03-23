@@ -1,0 +1,18 @@
+{
+  "name": "opentelemetry_proto",
+  "version": "1.9.0",
+  "description": "Nanopb compiled protobuf files for OTLP",
+  "keywords": ["OTLP", "OTEL", "protobuf"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AODtorusan/esphome-components.git"
+  },
+  "authors": [ "Simon Billemont" ],
+  "license": "MIT",
+  "dependencies": {
+    "nanopb": "nanopb/Nanopb@0.4.91"
+  },
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {}
+}
