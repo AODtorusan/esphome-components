@@ -169,6 +169,11 @@ void LogsRecorder::loop() {
   }
 }
 
+void LogsRecorder::on_shutdown() {
+  // Try to push any remaining logs out of the system before its halted
+  submit_logs();
+}
+
 // void LogsRecorder::set_protocol( const std::string& protocol ) {}
 
 void LogsRecorder::set_endpoint(const std::string& endpoint) { this->endpoint = endpoint + "/v1/logs"; }

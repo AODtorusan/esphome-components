@@ -27,6 +27,7 @@ class LogsRecorder : public Component {
   void dump_config() override;
   float get_setup_priority() const override;
   void loop() override;
+  void on_shutdown() override;
 
   // void set_protocol( const std::string& protocol );
   void set_endpoint(const std::string& endpoint);
