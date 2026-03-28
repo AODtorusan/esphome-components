@@ -211,7 +211,9 @@ bool MetricsRecorder::submit_metrics() {
   // Serialize the protobuf message
   std::string buffer;
   pb_ostream_t stream = pb_ostream_from_string(buffer);
+  App.feed_wdt();
   bool status = pb_encode(&stream, opentelemetry_proto_metrics_v1_MetricsData_fields, &metricsdata);
+  App.feed_wdt();
   if (!status) {
     ESP_LOGE(TAG, "Failed to encode metrics protobuf message");
     ESP_LOGE(TAG, "error: %s", PB_GET_ERROR(&stream));
