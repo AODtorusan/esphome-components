@@ -4,29 +4,29 @@
 
 #include <esphome/core/defines.h>
 
-#ifdef USE_BINARY_SENSOR
+#ifdef USE_SENSOR
 
-#include <esphome/components/binary_sensor/binary_sensor.h>
+#include <esphome/components/sensor/sensor.h>
 
 #include "metric.h"
 
 namespace esphome {
 namespace otel {
 
-class BinaryMetric : public Metric {
+class SensorMetric : public Metric {
  public:
-  BinaryMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, bool name_from_device_class, uint_fast16_t max_samples);
+  SensorMetric(MetricsRecorder* otel, sensor::Sensor* sensor, bool name_from_device_class, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;
   void sample() override;
 
-  binary_sensor::BinarySensor* get_sensor();
+  sensor::Sensor* get_sensor();
 
   encoding_function get_nanopb_encoder() override;
 
  protected:
-  binary_sensor::BinarySensor* sensor;
+  sensor::Sensor* sensor;
 };
 
 }  // namespace otel

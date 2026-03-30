@@ -13,7 +13,7 @@ from esphome.const import (
 from esphome.components.http_request import (
     HttpRequestComponent,
 )
-from esphome.components import binary_sensor, sensor, text_sensor
+from esphome.components import binary_sensor, number, select, sensor, switch, text_sensor
 from esphome.components.logger import LOG_LEVELS, is_log_level, request_log_listener
 from esphome.cpp_types import EntityBase
 from esphome.cpp_generator import MockObj, MockObjClass
@@ -48,8 +48,11 @@ MetricsRecorder = ns.class_("MetricsRecorder", cg.Component)
 MetricsAutoSensorDetection = ns.enum("MetricsAutoSensorDetection")
 
 Metric = ns.class_("Metric")
-BinaryMetric = ns.class_("BinaryMetric")
-NumericMetric = ns.class_("NumericMetric")
+BinarySensorMetric = ns.class_("BinarySensorMetric")
+NumberMetric = ns.class_("NumberMetric")
+SelectMetric = ns.class_("SelectMetric")
+SensorMetric = ns.class_("SensorMetric")
+SwitchMetric = ns.class_("SwitchMetric")
 
 
 OTLP_PROTOCOLS = {
@@ -150,9 +153,15 @@ async def to_code(config):
 
             metric: MockObj = None
             if (sensor_var_type.inherits_from( binary_sensor.BinarySensor )):
-                cls = BinaryMetric
+                cls = BinarySensorMetric
+            elif (sensor_var_type.inherits_from( number.Number )):
+                cls = NumberMetric
+            elif (sensor_var_type.inherits_from( select.Select )):
+                cls = SelectMetric
             elif (sensor_var_type.inherits_from( sensor.Sensor )):
-                cls = NumericMetric
+                cls = SensorMetric
+            elif (sensor_var_type.inherits_from( switch.Switch )):
+                cls = SwitchMetric
             else:
                 raise ValueError(f"Could not determine the proper metric type to create for this entity type! '{sensor_var}' of type '{sensor_var_type}'")
 

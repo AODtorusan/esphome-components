@@ -39,7 +39,7 @@ class Metric {
   const std::list<std::pair<uint64_t, float>>& get_samples() const;
   void clear_samples();
 
-  virtual encoding_function get_nanopb_encoder() = 0;
+  virtual encoding_function get_nanopb_encoder();
 
  protected:
   MetricsRecorder* otel;

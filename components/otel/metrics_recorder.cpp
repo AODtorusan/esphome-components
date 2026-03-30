@@ -7,8 +7,11 @@
 #include <opentelemetry/proto/metrics/v1/metrics.pb.h>
 #include <opentelemetry/proto/resource/v1/resource.pb.h>
 
-#include "binary_metric.h"
-#include "numeric_metric.h"
+#include "binary_sensor_metric.h"
+#include "number_metric.h"
+#include "select_metric.h"
+#include "sensor_metric.h"
+#include "switch_metric.h"
 #include "utils.h"
 
 namespace esphome {
@@ -92,11 +95,8 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring sensor: %s", obj->get_name().c_str());
-          BinaryMetric* metric = new BinaryMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          BinarySensorMetric* metric = new BinarySensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
           this->metrics.push_back(metric);
-          if (this->enable_sample_on_change) {
-            metric->install_sample_hook();
-          }
         }
       }
     }
@@ -108,15 +108,57 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring sensor: %s", obj->get_name().c_str());
-          NumericMetric* metric = new NumericMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          SensorMetric* metric = new SensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
           this->metrics.push_back(metric);
-          if (this->enable_sample_on_change) {
-            metric->install_sample_hook();
-          }
         }
       }
     }
 #endif
+#ifdef USE_NUMBER
+    for (auto* obj : App.get_numbers()) {
+      App.feed_wdt();
+      if ((load_internal && obj->is_internal()) || (load_external && !obj->is_internal())) {
+        // Check if the sensor was not manually defined
+        if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
+          ESP_LOGV(TAG, "Monitoring number: %s", obj->get_name().c_str());
+          NumberMetric* metric = new NumberMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          this->metrics.push_back(metric);
+        }
+      }
+    }
+#endif
+#ifdef USE_SELECT
+    for (auto* obj : App.get_selects()) {
+      App.feed_wdt();
+      if ((load_internal && obj->is_internal()) || (load_external && !obj->is_internal())) {
+        // Check if the sensor was not manually defined
+        if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
+          ESP_LOGV(TAG, "Monitoring select: %s", obj->get_name().c_str());
+          SelectMetric* metric = new SelectMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          this->metrics.push_back(metric);
+        }
+      }
+    }
+#endif
+#ifdef USE_SWITCH
+    for (auto* obj : App.get_switches()) {
+      App.feed_wdt();
+      if ((load_internal && obj->is_internal()) || (load_external && !obj->is_internal())) {
+        // Check if the sensor was not manually defined
+        if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
+          ESP_LOGV(TAG, "Monitoring switch: %s", obj->get_name().c_str());
+          SwitchMetric* metric = new SwitchMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          this->metrics.push_back(metric);
+        }
+      }
+    }
+#endif
+  }
+
+  if (this->enable_sample_on_change) {
+    for (auto* metric : this->metrics) {
+      metric->install_sample_hook();
+    }
   }
 
   if (this->sample_interval) {
@@ -138,11 +180,13 @@ void MetricsRecorder::dump_config() {
     ESP_LOGCONFIG(TAG, "      %s=%s", key.c_str(), value.c_str());
   }
 
-  ESP_LOGCONFIG(TAG, "    Sensors:");
+  ESP_LOGCONFIG(TAG, "    Entity metrics:");
   for (auto* esphome_metric : this->get_metrics()) {
     ESP_LOGCONFIG(TAG, "      %s", esphome_metric->get_entity()->get_name().c_str());
+    ESP_LOGCONFIG(TAG, "        Name: %s", esphome_metric->get_name()->c_str());
+    ESP_LOGCONFIG(TAG, "        Scope attributes:");
     for (auto& [key, value] : esphome_metric->get_attributes()) {
-      ESP_LOGCONFIG(TAG, "        %s=%s", key.c_str(), value.c_str());
+      ESP_LOGCONFIG(TAG, "          %s=%s", key.c_str(), value.c_str());
     }
   }
 }
@@ -241,10 +285,9 @@ bool MetricsRecorder::submit_metrics() {
 }
 
 void MetricsRecorder::sample_metrics() {
-  ESP_LOGI(TAG, "SAMPLE METRICS");
+  ESP_LOGD(TAG, "Sampling metrics");
   for (auto* esphome_metric : this->metrics) {
     esphome_metric->sample();
-    // on_state( esphome_metric->get_sensor()->get_state() );
   }
 }
 

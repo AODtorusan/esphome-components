@@ -86,7 +86,16 @@ Important:
 
 ### Metrics
 
-For metrics, each sensor is translated into a `ScopeMetrics`. This is done to avoid having to put the attributes linked to a sensor in each submitted datapoint.
+For metrics, each entity is translated into a `ScopeMetrics`. This is done to avoid having to put the attributes linked to a sensor in each submitted datapoint.
+
+The following entity types can be used to generate metrics:
+
+* [binary_sensor](https://esphome.io/components/binary_sensor/)
+* [number](https://esphome.io/components/number/)
+* [select](https://esphome.io/components/select/)
+  * Note: Every datapoint has an attribute `selection` with value the string representaiton of the selected value (the dpt value is the index of the selection)
+* [sensor](https://esphome.io/components/sensor/)
+* [switch](https://esphome.io/components/switch/)
 
 The name of the metric for each sensor is determined by the `name_from_device_class` option. If set to `true` it will use the set `device_class` for the sensor as name of the metric (or `unknown` if not set). Otherwise the name of the sensor is used as name of the metric.
 
@@ -106,9 +115,9 @@ sensor:
 
 Every sensor by-default has the following attributes (if they are not empty):
 
-* `sensor_name`: Name of the sensor, set `sensor[].name` (or then encoded id)
-* `unit`: Unit of the sensor, set `sensor[].unit_of_measurement`
-* `device_class`: The device class for the sensor, set `sensor[].device_class`
+* `sensor_name`: Name of the entity, set `entity[].name` (or then encoded id)
+* `unit`: Unit of the entity, set `entity[].unit_of_measurement`
+* `device_class`: The device class for the entity, set `entity[].device_class`
 * `state_class`: The state class for the sensor, set `sensor[].state_class`
 
 ### Logs

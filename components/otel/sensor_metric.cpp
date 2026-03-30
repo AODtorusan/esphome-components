@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "numeric_metric.h"
+#include "sensor_metric.h"
 
 #ifdef USE_SENSOR
 
@@ -13,12 +13,12 @@
 namespace esphome {
 namespace otel {
 
-static const char *const TAG = "OTLP.numericmetric";
+static const char *const TAG = "OTLP.SensorMetric";
 
 static const std::string STR_TAG_STATE_CLASS = "state_class";
 
-bool nanopb_encode_numericmetric(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
-  NumericMetric *esphome_metric = (NumericMetric *)(*arg);
+bool nanopb_encode_SensorMetric(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
+  SensorMetric *esphome_metric = (SensorMetric *)(*arg);
 
   opentelemetry_proto_metrics_v1_Metric metric = opentelemetry_proto_metrics_v1_Metric_init_zero;
   metric.name.arg = esphome_metric->get_name();
@@ -61,19 +61,20 @@ bool nanopb_encode_numericmetric(pb_ostream_t *stream, const pb_field_t *field, 
   return true;
 }
 
-NumericMetric::NumericMetric(MetricsRecorder *otel, sensor::Sensor *sensor, bool name_from_device_class, uint_fast16_t max_samples)
+SensorMetric::SensorMetric(MetricsRecorder *otel, sensor::Sensor *sensor, bool name_from_device_class, uint_fast16_t max_samples)
     : Metric(otel, sensor, name_from_device_class, max_samples) {
   this->sensor = sensor;
   this->add_attribute(STR_TAG_STATE_CLASS, LOG_STR_ARG(state_class_to_string(this->sensor->get_state_class())));
 }
 
-EntityBase *NumericMetric::get_entity() { return this->sensor; }
+EntityBase *SensorMetric::get_entity() { return this->sensor; }
 
-void NumericMetric::install_sample_hook() {
+void SensorMetric::install_sample_hook() {
   this->sensor->add_on_state_callback([this](float state) { this->sample(); });
 }
 
-void NumericMetric::sample() {
+void SensorMetric::sample() {
+  if (!this->sensor->has_state()) return;
   float value = this->sensor->get_state();
   uint64_t timestamp = get_otlp_timestamp();
 #ifdef OTLP_DROP_UNSYNCHRONIZED
@@ -85,9 +86,9 @@ void NumericMetric::sample() {
   this->otel->enable_loop();
 }
 
-sensor::Sensor *NumericMetric::get_sensor() { return this->sensor; }
+sensor::Sensor *SensorMetric::get_sensor() { return this->sensor; }
 
-encoding_function NumericMetric::get_nanopb_encoder() { return nanopb_encode_numericmetric; }
+encoding_function SensorMetric::get_nanopb_encoder() { return nanopb_encode_SensorMetric; }
 
 }  // namespace otel
 }  // namespace esphome

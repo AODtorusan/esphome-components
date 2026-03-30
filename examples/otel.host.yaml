@@ -12,7 +12,7 @@ host:
 
 logger:
   # valid options are 'NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'VERBOSE', 'VERY_VERBOSE'.
-  level: VERBOSE
+  level: VERY_VERBOSE
 
 external_components:
   - components: [ otel ]
@@ -40,6 +40,29 @@ binary_sensor:
     name: "External binary sensor"
   - platform: template
     id: binary_sensor_internal
+
+number:
+  - platform: template
+    id: number_internal
+    min_value: 0
+    step: 1
+    max_value: 10
+    optimistic: true
+
+select:
+  - platform: template
+    id: select_sensor
+    optimistic: true
+    options:
+      - one
+      - two
+      - three
+
+switch:
+  - platform: template
+    id: switch_sensor
+    optimistic: true
+    restore_mode: ALWAYS_ON
 
 http_request:
   ca_certificate_path: /etc/ssl/certs/ca-certificates.crt

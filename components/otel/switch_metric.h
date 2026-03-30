@@ -4,29 +4,27 @@
 
 #include <esphome/core/defines.h>
 
-#ifdef USE_SENSOR
+#ifdef USE_SWITCH
 
-#include <esphome/components/sensor/sensor.h>
+#include <esphome/components/switch/switch.h>
 
 #include "metric.h"
 
 namespace esphome {
 namespace otel {
 
-class NumericMetric : public Metric {
+class SwitchMetric : public Metric {
  public:
-  NumericMetric(MetricsRecorder* otel, sensor::Sensor* sensor, bool name_from_device_class, uint_fast16_t max_samples);
+  SwitchMetric(MetricsRecorder* otel, switch_::Switch* switch_, bool name_from_device_class, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;
   void sample() override;
 
-  sensor::Sensor* get_sensor();
-
-  encoding_function get_nanopb_encoder() override;
+  switch_::Switch* get_switch();
 
  protected:
-  sensor::Sensor* sensor;
+  switch_::Switch* switch_;
 };
 
 }  // namespace otel
