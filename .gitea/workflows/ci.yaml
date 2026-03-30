@@ -2,7 +2,7 @@ name: Build
 on:
   push:
   schedule:
-    - cron: '0 5 * * MON'  # At 05:00 UTC on Monday
+    - cron: '0 5 * * *'  # At 05:00 UTC
 
 jobs:
   setup:
