@@ -27,7 +27,7 @@ enum MetricsAutoSensorDetection : uint8_t {
 class MetricsRecorder : public Component {
  public:
   MetricsRecorder(http_request::HttpRequestComponent* http, bool enable_sample_on_change, uint32_t sample_interval, uint_fast16_t max_samples_per_metric,
-                  MetricsAutoSensorDetection autodetection, bool name_from_device_class);
+                  MetricsAutoSensorDetection autodetection, bool autodetect_text_sensors, bool name_from_device_class);
 
   void setup() override;
   void dump_config() override;
@@ -52,6 +52,7 @@ class MetricsRecorder : public Component {
   std::map<std::string, std::string> resource_attributes;
 
   MetricsAutoSensorDetection autodetection = MetricsAutoSensorDetection::SENSORS_ALL;
+  bool autodetect_text_sensors = false;
   bool name_from_device_class = true;
   bool enable_sample_on_change = false;
   uint32_t sample_interval = 0;

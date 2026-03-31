@@ -33,6 +33,7 @@ CONF_OTEL_METRICS = "metrics"
 CONF_OTEL_METRICS_SAMPLE_ON_CHANGE = "sample_on_change"
 CONF_OTEL_METRICS_SAMPLE_INTERVAL = "sample_interval"
 CONF_OTEL_METRICS_AUTODETECTION = "autodetection"
+CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS = "autodetect_text_sensors"
 CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS = "name_from_device_class"
 CONF_OTEL_METRICS_MAX_SAMPLES = "max_samples"
 CONF_OTEL_METRICS_SENSOR_NAME = "name"
@@ -82,6 +83,7 @@ METRICS_SCHEMA = cv.Schema( {
     cv.Optional(CONF_OTEL_METRICS_SAMPLE_ON_CHANGE): cv.boolean,
     cv.Optional(CONF_OTEL_METRICS_SAMPLE_INTERVAL): cv.positive_float,
     cv.Optional(CONF_OTEL_METRICS_AUTODETECTION, default="all"): cv.enum( OTLP_METRICS_AUTODETECTION ),
+    cv.Optional(CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS): cv.boolean,
     cv.Optional(CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS): cv.boolean,
     cv.Optional(CONF_OTEL_METRICS_MAX_SAMPLES): cv.int_range(min=2),
     cv.Optional(CONF_SENSORS, default={}): SENSOR_SCHEMA,
@@ -131,9 +133,10 @@ async def to_code(config):
         sample_interval = int(1000 * config_metics.get(CONF_OTEL_METRICS_SAMPLE_INTERVAL, 0)) # ms
         max_samples_per_metric = config_metics.get(CONF_OTEL_METRICS_MAX_SAMPLES, 50)
         metrics_autodetection = config_metics.get(CONF_OTEL_METRICS_AUTODETECTION)
+        autodetect_text_sensors = config_metics.get(CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS, False)
         name_from_device_class = config_metics.get(CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS, False)
 
-        metricsRecorder = cg.new_Pvariable(config_metics[CONF_ID], http, sample_on_change, sample_interval, max_samples_per_metric, metrics_autodetection, name_from_device_class)
+        metricsRecorder = cg.new_Pvariable(config_metics[CONF_ID], http, sample_on_change, sample_interval, max_samples_per_metric, metrics_autodetection, autodetect_text_sensors, name_from_device_class)
         await cg.register_component(metricsRecorder, config_metics)
 
         ## Common stuff

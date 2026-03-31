@@ -31,6 +31,7 @@ Open Source software: [GNU General Public License v3.0 or later](https://spdx.or
     * `internal`: Submit metric for all internal sensors in this device (sensors without name).
     * `external`: Submit metric for all external sensors in this device (sensors with name).
     * `all`: Submit metric for all sensors
+  * `autodetect_text_sensors` (Optional, boolean): If set to true, text_sensors will emit metrics with a label `text` set to the value of the current text
   * `name_from_device_class` (Optional, boolean): If set to true, then the metric for the sensor will be the device_class of that sensor (or `unknown` if not set). If set to false, the sensor name will be the name of the metric. Defaults to false.
   * `max_samples` (Optional, integer): Maximum number of historical samples to store in-memory when the connection to the OTLP endpoint is down. Defaults to 50.
   * `sensors` (Optional, mapping): List of sensors to collect metrics for in addition to those specified by the `autodetection` key.
@@ -93,9 +94,15 @@ The following entity types can be used to generate metrics:
 * [binary_sensor](https://esphome.io/components/binary_sensor/)
 * [number](https://esphome.io/components/number/)
 * [select](https://esphome.io/components/select/)
-  * Note: Every datapoint has an attribute `selection` with value the string representaiton of the selected value (the dpt value is the index of the selection)
+  * Every datapoint has an attribute `selection` with value the string representaiton of the selected value (the dpt value is the index of the selection)
 * [sensor](https://esphome.io/components/sensor/)
 * [switch](https://esphome.io/components/switch/)
+* [text_sensor](https://esphome.io/components/text_sensor/)
+  * Every datapoint has an attribute `text` with value the string representaiton of the text_sensor (the dpt value is always 1)
+  * Autodetection must be explicitly enabled via `autodetect_text_sensors`
+  * Be very carefull using this! Use this only if there are limited number of possible text states.
+    * See https://opentelemetry.io/docs/languages/dotnet/metrics/best-practices/#cardinality-limits
+    * See https://prometheus.io/docs/practices/the_zen/#cardinality-matters
 
 The name of the metric for each sensor is determined by the `name_from_device_class` option. If set to `true` it will use the set `device_class` for the sensor as name of the metric (or `unknown` if not set). Otherwise the name of the sensor is used as name of the metric.
 

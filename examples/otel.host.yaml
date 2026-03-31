@@ -64,6 +64,10 @@ switch:
     optimistic: true
     restore_mode: ALWAYS_ON
 
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+
 http_request:
   ca_certificate_path: /etc/ssl/certs/ca-certificates.crt
 
@@ -99,6 +103,7 @@ otel:
     sample_interval: 30
     max_samples: 100 # per metric
     autodetection: all
+    autodetect_text_sensors: true
     name_from_device_class: true
     sensors:
       sensor_internal:

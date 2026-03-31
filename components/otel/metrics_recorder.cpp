@@ -12,6 +12,7 @@
 #include "select_metric.h"
 #include "sensor_metric.h"
 #include "switch_metric.h"
+#include "text_sensor_metric.h"
 #include "utils.h"
 
 namespace esphome {
@@ -69,12 +70,14 @@ bool nanopb_encode_resource_metrics(pb_ostream_t* stream, const pb_field_t* fiel
 }
 
 MetricsRecorder::MetricsRecorder(http_request::HttpRequestComponent* http, bool enable_sample_on_change, uint32_t sample_interval,
-                                 uint_fast16_t max_samples_per_metric, MetricsAutoSensorDetection autodetection, bool name_from_device_class) {
+                                 uint_fast16_t max_samples_per_metric, MetricsAutoSensorDetection autodetection, bool autodetect_text_sensors,
+                                 bool name_from_device_class) {
   this->http = http;
   this->enable_sample_on_change = enable_sample_on_change;
   this->sample_interval = sample_interval;
   this->max_samples_per_metric = max_samples_per_metric;
   this->autodetection = autodetection;
+  this->autodetect_text_sensors = autodetect_text_sensors;
   this->name_from_device_class = name_from_device_class;
 }
 
@@ -149,6 +152,21 @@ void MetricsRecorder::setup() {
           ESP_LOGV(TAG, "Monitoring switch: %s", obj->get_name().c_str());
           SwitchMetric* metric = new SwitchMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
           this->metrics.push_back(metric);
+        }
+      }
+    }
+#endif
+#ifdef USE_TEXT_SENSOR
+    if (autodetect_text_sensors) {
+      for (auto* obj : App.get_text_sensors()) {
+        App.feed_wdt();
+        if ((load_internal && obj->is_internal()) || (load_external && !obj->is_internal())) {
+          // Check if the sensor was not manually defined
+          if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
+            ESP_LOGV(TAG, "Monitoring text_sensor: %s", obj->get_name().c_str());
+            TextSensorMetric* metric = new TextSensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+            this->metrics.push_back(metric);
+          }
         }
       }
     }
