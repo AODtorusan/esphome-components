@@ -54,7 +54,7 @@ NumberMetric = ns.class_("NumberMetric")
 SelectMetric = ns.class_("SelectMetric")
 SensorMetric = ns.class_("SensorMetric")
 SwitchMetric = ns.class_("SwitchMetric")
-
+TextSensorMetric = ns.class_("TextSensorMetric")
 
 OTLP_PROTOCOLS = {
     "http/protobuf": "http/protobuf",
@@ -165,6 +165,8 @@ async def to_code(config):
                 cls = SensorMetric
             elif (sensor_var_type.inherits_from( switch.Switch )):
                 cls = SwitchMetric
+            elif (sensor_var_type.inherits_from( text_sensor.TextSensor )):
+                cls = TextSensorMetric
             else:
                 raise ValueError(f"Could not determine the proper metric type to create for this entity type! '{sensor_var}' of type '{sensor_var_type}'")
 
