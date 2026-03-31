@@ -27,6 +27,13 @@ The components are periodically tested with the latest available version of esph
 
 ## Custom components
 
+### OTEL
+
+This component adds OTEL / OTLP functionality to esphome. It allows for transmitting logs and metrics to an existing OTLP endpoint (like otel-collector / grafana-cloud / prometheus / victoriametrics|logs).
+
+See: [OTEL component](components/otel/readme.md)
+
+
 ### KNX
 
 This component adds KNX TP functionality to esphome through using a TPUART2 interface to connect to the KNX bus and listen to and publish KNX group messages.
