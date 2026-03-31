@@ -14,7 +14,7 @@ namespace otel {
 
 static const char* const TAG = "OTLP.metric";
 
-static const std::string STR_TAG_SENSOR_NAME = "sensor_name";
+static const std::string STR_TAG_ENTITY_NAME = "entity_name";
 static const std::string STR_TAG_UNIT = "unit";
 static const std::string STR_TAG_DEVICE_CLASS = "device_class";
 static const std::string STR_TAG_STATE_CLASS = "state_class";
@@ -85,7 +85,7 @@ Metric::Metric(MetricsRecorder* otel, EntityBase* entity, bool name_from_device_
     this->set_name(entity->get_name());
   }
 
-  this->add_attribute(STR_TAG_SENSOR_NAME, entity->get_name());
+  this->add_attribute(STR_TAG_ENTITY_NAME, entity->get_name());
 
   if (!entity->get_unit_of_measurement_ref().empty()) {
     this->add_attribute(STR_TAG_UNIT, entity->get_unit_of_measurement_ref());

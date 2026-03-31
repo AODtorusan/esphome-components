@@ -115,7 +115,7 @@ sensor:
 
 Every sensor by-default has the following attributes (if they are not empty):
 
-* `sensor_name`: Name of the entity, set `entity[].name` (or then encoded id)
+* `entity_name`: Name of the entity, set `entity[].name` (or then encoded id)
 * `unit`: Unit of the entity, set `entity[].unit_of_measurement`
 * `device_class`: The device class for the entity, set `entity[].device_class`
 * `state_class`: The state class for the sensor, set `sensor[].state_class`
