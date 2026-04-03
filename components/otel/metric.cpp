@@ -18,6 +18,7 @@ static const char* const TAG = "OTLP.metric";
 static const char* STR_NAME_UNKNOWN = "unknown";
 
 static const char* STR_TAG_ENTITY_NAME = "entity_name";
+static const char* STR_TAG_ENTITY_TYPE = "entity_type";
 static const char* STR_TAG_UNIT = "unit";
 static const char* STR_TAG_DEVICE_CLASS = "device_class";
 static const char* STR_TAG_STATE_CLASS = "state_class";
@@ -95,6 +96,7 @@ Metric::Metric(MetricsRecorder* otel, EntityBase* entity, const char* entity_typ
       break;
   }
   this->add_attribute(STR_TAG_ENTITY_NAME, entity->get_name().c_str());
+  this->add_attribute(STR_TAG_ENTITY_TYPE, entity_type);
 
   if (!entity->get_unit_of_measurement_ref().empty()) {
     this->add_attribute(STR_TAG_UNIT, entity->get_unit_of_measurement_ref().c_str());
