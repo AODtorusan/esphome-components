@@ -15,8 +15,8 @@ namespace otel {
 
 static const char *const TAG = "OTLP.SwitchMetric";
 
-SwitchMetric::SwitchMetric(MetricsRecorder *otel, switch_::Switch *switch_, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, switch_, name_from_device_class, max_samples) {
+SwitchMetric::SwitchMetric(MetricsRecorder *otel, switch_::Switch *switch_, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples)
+    : Metric(otel, switch_, "switch", naming_scheme, max_samples) {
   this->switch_ = switch_;
 }
 

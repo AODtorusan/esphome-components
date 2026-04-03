@@ -34,7 +34,7 @@ CONF_OTEL_METRICS_SAMPLE_ON_CHANGE = "sample_on_change"
 CONF_OTEL_METRICS_SAMPLE_INTERVAL = "sample_interval"
 CONF_OTEL_METRICS_AUTODETECTION = "autodetection"
 CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS = "autodetect_text_sensors"
-CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS = "name_from_device_class"
+CONF_OTEL_METRICS_NAMING_SCHEME = "naming_scheme"
 CONF_OTEL_METRICS_MAX_SAMPLES = "max_samples"
 CONF_OTEL_METRICS_SENSOR_NAME = "name"
 
@@ -47,6 +47,7 @@ OTEL = ns.class_("OTEL", cg.Component)
 LogsRecorder = ns.class_("LogsRecorder", cg.Component)
 MetricsRecorder = ns.class_("MetricsRecorder", cg.Component)
 MetricsAutoSensorDetection = ns.enum("MetricsAutoSensorDetection")
+MetricsNamingScheme = ns.enum("MetricsNamingScheme")
 
 Metric = ns.class_("Metric")
 BinarySensorMetric = ns.class_("BinarySensorMetric")
@@ -67,6 +68,12 @@ OTLP_METRICS_AUTODETECTION = {
     "all":      MetricsAutoSensorDetection.SENSORS_ALL,
 }
 
+OTLP_METRICS_NAMING = {
+    "entity_name":  MetricsNamingScheme.ENTITY_NAME,
+    "entity_type":  MetricsNamingScheme.ENTITY_TYPE,
+    "device_class": MetricsNamingScheme.ENTITY_DEVICE_CLASS,
+}
+
 SENSOR_SCHEMA = cv.Schema(
     {
         cv.use_id(EntityBase): cv.Schema( {
@@ -84,7 +91,7 @@ METRICS_SCHEMA = cv.Schema( {
     cv.Optional(CONF_OTEL_METRICS_SAMPLE_INTERVAL): cv.positive_float,
     cv.Optional(CONF_OTEL_METRICS_AUTODETECTION, default="all"): cv.enum( OTLP_METRICS_AUTODETECTION ),
     cv.Optional(CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS): cv.boolean,
-    cv.Optional(CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS): cv.boolean,
+    cv.Optional(CONF_OTEL_METRICS_NAMING_SCHEME, default="entity_type"): cv.enum( OTLP_METRICS_NAMING ),
     cv.Optional(CONF_OTEL_METRICS_MAX_SAMPLES): cv.int_range(min=2),
     cv.Optional(CONF_SENSORS, default={}): SENSOR_SCHEMA,
 } )
@@ -134,9 +141,9 @@ async def to_code(config):
         max_samples_per_metric = config_metics.get(CONF_OTEL_METRICS_MAX_SAMPLES, 50)
         metrics_autodetection = config_metics.get(CONF_OTEL_METRICS_AUTODETECTION)
         autodetect_text_sensors = config_metics.get(CONF_OTEL_METRICS_AUTODETECT_TEXT_SENSORS, False)
-        name_from_device_class = config_metics.get(CONF_OTEL_METRICS_NAME_FROM_DEVICE_CLASS, False)
+        naming_scheme = config_metics.get(CONF_OTEL_METRICS_NAMING_SCHEME)
 
-        metricsRecorder = cg.new_Pvariable(config_metics[CONF_ID], http, sample_on_change, sample_interval, max_samples_per_metric, metrics_autodetection, autodetect_text_sensors, name_from_device_class)
+        metricsRecorder = cg.new_Pvariable(config_metics[CONF_ID], http, sample_on_change, sample_interval, max_samples_per_metric, metrics_autodetection, autodetect_text_sensors, naming_scheme)
         await cg.register_component(metricsRecorder, config_metics)
 
         ## Common stuff
@@ -170,7 +177,7 @@ async def to_code(config):
             else:
                 raise ValueError(f"Could not determine the proper metric type to create for this entity type! '{sensor_var}' of type '{sensor_var_type}'")
 
-            metric = cg.Pvariable(sensor_config[CONF_ID], cls.new(metricsRecorder, sensor_var, name_from_device_class, sample_depth ))
+            metric = cg.Pvariable(sensor_config[CONF_ID], cls.new(metricsRecorder, sensor_var, naming_scheme, sample_depth ))
             cg.add(metricsRecorder.add_metric(metric))
             if sample_on_change:
                 cg.add(metric.install_sample_hook())

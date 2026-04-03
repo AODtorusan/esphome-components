@@ -6,6 +6,7 @@
 #include <map>
 
 #include <esphome/core/log.h>
+#include <esphome/core/string_ref.h>
 #include <opentelemetry/proto/common/v1/common.pb.h>
 
 namespace esphome {
@@ -46,6 +47,12 @@ bool nanopb_encode_std_string(pb_ostream_t *stream, const pb_field_t *field, voi
   return pb_encode_string(stream, (const uint8_t *)(str->c_str()), str->length());
 }
 
+bool nanopb_encode_strref(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
+  const StringRef *str = (const StringRef *)(*arg);
+  if (!pb_encode_tag_for_field(stream, field)) return false;
+  return pb_encode_string(stream, (const uint8_t *)(str->c_str()), str->length());
+}
+
 bool nanopb_encode_attributes(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
   const std::map<const std::string, const std::string> *attrs = (const std::map<const std::string, const std::string> *)(*arg);
   for (auto &[key, value] : *attrs) {
@@ -80,6 +87,30 @@ bool nanopb_encode_c_str_attributes(pb_ostream_t *stream, const pb_field_t *fiel
     keyvalue.value.which_value = opentelemetry_proto_common_v1_AnyValue_string_value_tag;
     keyvalue.value.value.string_value.arg = (void *)value;
     keyvalue.value.value.string_value.funcs.encode = nanopb_encode_c_string;
+    // Build the submessage tag
+    if (!pb_encode_tag_for_field(stream, field)) {
+      ESP_LOGE(TAG, "Attributes pb_encode_tag_for_field error: %s", PB_GET_ERROR(stream));
+      return false;
+    }
+    // Build the submessage payload
+    if (!pb_encode_submessage(stream, opentelemetry_proto_common_v1_KeyValue_fields, &keyvalue)) {
+      ESP_LOGE(TAG, "Attributes pb_encode_submessage error: %s", PB_GET_ERROR(stream));
+      return false;
+    }
+  }
+  return true;
+}
+
+bool nanopb_encode_strref_attributes(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
+  const std::map<StringRef, StringRef> *attrs = (const std::map<StringRef, StringRef> *)(*arg);
+  for (auto [key, value] : *attrs) {
+    opentelemetry_proto_common_v1_KeyValue keyvalue = opentelemetry_proto_common_v1_KeyValue_init_zero;
+    keyvalue.key.arg = (void *)&key;
+    keyvalue.key.funcs.encode = nanopb_encode_strref;
+    keyvalue.has_value = true;
+    keyvalue.value.which_value = opentelemetry_proto_common_v1_AnyValue_string_value_tag;
+    keyvalue.value.value.string_value.arg = &value;
+    keyvalue.value.value.string_value.funcs.encode = nanopb_encode_strref;
     // Build the submessage tag
     if (!pb_encode_tag_for_field(stream, field)) {
       ESP_LOGE(TAG, "Attributes pb_encode_tag_for_field error: %s", PB_GET_ERROR(stream));

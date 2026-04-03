@@ -50,8 +50,8 @@ bool nanopb_encode_SelectMetric(pb_ostream_t *stream, const pb_field_t *field, v
   SelectMetric *esphome_metric = (SelectMetric *)(*arg);
 
   opentelemetry_proto_metrics_v1_Metric metric = opentelemetry_proto_metrics_v1_Metric_init_zero;
-  metric.name.arg = esphome_metric->get_name();
-  metric.name.funcs.encode = nanopb_encode_std_string;
+  metric.name.arg = (void*) esphome_metric->get_name();
+  metric.name.funcs.encode = nanopb_encode_c_string;
   metric.description.arg = (void *)(esphome_metric->get_select()->get_name().c_str());
   metric.description.funcs.encode = nanopb_encode_c_string;
   metric.unit.arg = (void *)(esphome_metric->get_select()->get_unit_of_measurement_ref().c_str());
@@ -74,8 +74,8 @@ bool nanopb_encode_SelectMetric(pb_ostream_t *stream, const pb_field_t *field, v
   return true;
 }
 
-SelectMetric::SelectMetric(MetricsRecorder *otel, select::Select *sensor, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, sensor, name_from_device_class, max_samples) {
+SelectMetric::SelectMetric(MetricsRecorder *otel, select::Select *sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples)
+    : Metric(otel, sensor, "select", naming_scheme, max_samples) {
   this->select = sensor;
 }
 

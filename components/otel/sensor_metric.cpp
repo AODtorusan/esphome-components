@@ -15,14 +15,14 @@ namespace otel {
 
 static const char *const TAG = "OTLP.SensorMetric";
 
-static const std::string STR_TAG_STATE_CLASS = "state_class";
+static const char *STR_TAG_STATE_CLASS = "state_class";
 
 bool nanopb_encode_SensorMetric(pb_ostream_t *stream, const pb_field_t *field, void *const *arg) {
   SensorMetric *esphome_metric = (SensorMetric *)(*arg);
 
   opentelemetry_proto_metrics_v1_Metric metric = opentelemetry_proto_metrics_v1_Metric_init_zero;
-  metric.name.arg = esphome_metric->get_name();
-  metric.name.funcs.encode = nanopb_encode_std_string;
+  metric.name.arg = (void*) esphome_metric->get_name();
+  metric.name.funcs.encode = nanopb_encode_c_string;
   metric.description.arg = (void *)(esphome_metric->get_sensor()->get_name().c_str());
   metric.description.funcs.encode = nanopb_encode_c_string;
   metric.unit.arg = (void *)(esphome_metric->get_sensor()->get_unit_of_measurement_ref().c_str());
@@ -61,8 +61,8 @@ bool nanopb_encode_SensorMetric(pb_ostream_t *stream, const pb_field_t *field, v
   return true;
 }
 
-SensorMetric::SensorMetric(MetricsRecorder *otel, sensor::Sensor *sensor, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, sensor, name_from_device_class, max_samples) {
+SensorMetric::SensorMetric(MetricsRecorder *otel, sensor::Sensor *sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples)
+    : Metric(otel, sensor, "sensor", naming_scheme, max_samples) {
   this->sensor = sensor;
   this->add_attribute(STR_TAG_STATE_CLASS, LOG_STR_ARG(state_class_to_string(this->sensor->get_state_class())));
 }

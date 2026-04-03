@@ -31,13 +31,16 @@ Open Source software: [GNU General Public License v3.0 or later](https://spdx.or
     * `internal`: Submit metric for all internal sensors in this device (sensors without name).
     * `external`: Submit metric for all external sensors in this device (sensors with name).
     * `all`: Submit metric for all sensors
-  * `autodetect_text_sensors` (Optional, boolean): If set to true, text_sensors will emit metrics with a label `text` set to the value of the current text
-  * `name_from_device_class` (Optional, boolean): If set to true, then the metric for the sensor will be the device_class of that sensor (or `unknown` if not set). If set to false, the sensor name will be the name of the metric. Defaults to false.
+  * `autodetect_text_sensors` (Optional, boolean): If set to true, text_sensors will emit metrics with a label `text` set to the value of the current text.
+  * `naming_scheme` (Optional, enum): Determines how the name of an OTLP metric is derived from an esphome entity. This can always be overwritten per entity under `sensors`.
+    * `entity_name`: Sets the name of the metric to the name of the entity
+    * `entity_type`: Sets the name of the metric to the type of the entity (eg sensor, binary_sensor, ...)
+    * `device_class`: Sets the name of the metric to the device_class of the entity. If no device class is set its set to `unknown`
   * `max_samples` (Optional, integer): Maximum number of historical samples to store in-memory when the connection to the OTLP endpoint is down. Defaults to 50.
   * `sensors` (Optional, mapping): List of sensors to collect metrics for in addition to those specified by the `autodetection` key.
     * `$sensor_id` (Optional, mapping): ID of the sensor to collect metrics for
       * `id` (Optional, ID): Manually specify the ID used for code generation.
-      * `name` (Optional, string): Override the name of the metric that this sensor generated. Default: see `name_from_device_class`
+      * `name` (Optional, string): Override the name of the metric that this sensor generated. Default: see `naming_scheme`
       * `attributes` (Optional, mapping[str, str]): Map of string attributes to add the OTLP Metric (scope). Defaults to `{}`.
       * `max_samples` (Optional, integer): Maximum number of historical samples to store in-memory when the connection to the OTLP endpoint is down. Defaults to `max_samples` defined under `metrics`.
 * `logs` (Optional, mapping): If defined, logs will be submitted to the endpoint by this component.
@@ -104,7 +107,7 @@ The following entity types can be used to generate metrics:
     * See https://opentelemetry.io/docs/languages/dotnet/metrics/best-practices/#cardinality-limits
     * See https://prometheus.io/docs/practices/the_zen/#cardinality-matters
 
-The name of the metric for each sensor is determined by the `name_from_device_class` option. If set to `true` it will use the set `device_class` for the sensor as name of the metric (or `unknown` if not set). Otherwise the name of the sensor is used as name of the metric.
+The name of the metric for each sensor is determined by the explicit name set for the sensor under metrics or the set scheme under `naming_scheme` otherwise.
 
 The type of metric that is used depends on the `state_class` of the sensor (`sensor[].state_class`).
 

@@ -15,7 +15,7 @@ namespace otel {
 
 class NumberMetric : public Metric {
  public:
-  NumberMetric(MetricsRecorder* otel, number::Number* number, bool name_from_device_class, uint_fast16_t max_samples);
+  NumberMetric(MetricsRecorder* otel, number::Number* number, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;

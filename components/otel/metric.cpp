@@ -6,6 +6,7 @@
 #include <esphome/core/log.h>
 #include <opentelemetry/proto/metrics/v1/metrics.pb.h>
 
+#include "metrics_recorder.h"
 #include "utils.h"
 #include <pb_encode.h>
 
@@ -14,10 +15,12 @@ namespace otel {
 
 static const char* const TAG = "OTLP.metric";
 
-static const std::string STR_TAG_ENTITY_NAME = "entity_name";
-static const std::string STR_TAG_UNIT = "unit";
-static const std::string STR_TAG_DEVICE_CLASS = "device_class";
-static const std::string STR_TAG_STATE_CLASS = "state_class";
+static const char* STR_NAME_UNKNOWN = "unknown";
+
+static const char* STR_TAG_ENTITY_NAME = "entity_name";
+static const char* STR_TAG_UNIT = "unit";
+static const char* STR_TAG_DEVICE_CLASS = "device_class";
+static const char* STR_TAG_STATE_CLASS = "state_class";
 
 bool nanopb_encode_dpt(pb_ostream_t* stream, const pb_field_t* field, void* const* arg) {
   Metric* metric = (Metric*)(*arg);
@@ -44,8 +47,8 @@ bool nanopb_encode_Metric(pb_ostream_t* stream, const pb_field_t* field, void* c
   Metric* esphome_metric = (Metric*)(*arg);
 
   opentelemetry_proto_metrics_v1_Metric metric = opentelemetry_proto_metrics_v1_Metric_init_zero;
-  metric.name.arg = esphome_metric->get_name();
-  metric.name.funcs.encode = nanopb_encode_std_string;
+  metric.name.arg = (void*)esphome_metric->get_name();
+  metric.name.funcs.encode = nanopb_encode_c_string;
   metric.description.arg = (void*)(esphome_metric->get_entity()->get_name().c_str());
   metric.description.funcs.encode = nanopb_encode_c_string;
 
@@ -66,42 +69,48 @@ bool nanopb_encode_Metric(pb_ostream_t* stream, const pb_field_t* field, void* c
   return true;
 }
 
-Metric::Metric(MetricsRecorder* otel, EntityBase* entity, bool name_from_device_class, uint_fast16_t max_samples) {
+Metric::Metric(MetricsRecorder* otel, EntityBase* entity, const char* entity_type, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples) {
   this->otel = otel;
   this->max_samples = max_samples;
 
   // This is not efficient ...
   char dc_buf[MAX_DEVICE_CLASS_LENGTH];
   const char* dc = entity->get_device_class_to(dc_buf);
-  std::string device_class(dc);
+  device_class = dc;
 
-  if (name_from_device_class) {
-    if (!device_class.empty()) {
-      this->set_name(device_class);
-    } else {
-      this->set_name("unknown");
-    }
-  } else {
-    this->set_name(entity->get_name());
+  switch (naming_scheme) {
+    case MetricsNamingScheme::ENTITY_TYPE:
+      this->set_name(entity_type);
+      break;
+    case MetricsNamingScheme::ENTITY_DEVICE_CLASS:
+      if (!device_class.empty()) {
+        this->set_name(device_class.c_str());
+      } else {
+        this->set_name(STR_NAME_UNKNOWN);
+      }
+      break;
+    case MetricsNamingScheme::ENTITY_NAME:
+    default:
+      this->set_name(entity->get_name().c_str());
+      break;
   }
-
-  this->add_attribute(STR_TAG_ENTITY_NAME, entity->get_name());
+  this->add_attribute(STR_TAG_ENTITY_NAME, entity->get_name().c_str());
 
   if (!entity->get_unit_of_measurement_ref().empty()) {
-    this->add_attribute(STR_TAG_UNIT, entity->get_unit_of_measurement_ref());
+    this->add_attribute(STR_TAG_UNIT, entity->get_unit_of_measurement_ref().c_str());
   }
   if (!device_class.empty()) {
-    this->add_attribute(STR_TAG_DEVICE_CLASS, device_class);
+    this->add_attribute(STR_TAG_DEVICE_CLASS, device_class.c_str());
   }
 }
 
-void Metric::set_name(std::string name) { this->name = name; }
+void Metric::set_name(const char* name) { this->name = name; }
 
-std::string* Metric::get_name() { return &this->name; }
+const char* Metric::get_name() { return this->name; }
 
-void Metric::add_attribute(const std::string& attr_key, const std::string& attr_value) { this->attributes.insert_or_assign(attr_key, attr_value); }
+void Metric::add_attribute(const char* attr_key, const char* attr_value) { this->attributes.insert_or_assign(attr_key, attr_value); }
 
-const std::map<std::string, std::string>& Metric::get_attributes() const { return this->attributes; }
+std::map<const char*, const char*>* Metric::get_attributes() { return &(this->attributes); }
 
 const std::list<std::pair<uint64_t, float>>& Metric::get_samples() const { return this->samples; }
 

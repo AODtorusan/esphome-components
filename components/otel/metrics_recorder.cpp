@@ -2,12 +2,14 @@
 
 #include "metrics_recorder.h"
 
+#include <cstdio>
 #include <esphome/components/network/util.h>
 #include <opentelemetry/proto/common/v1/common.pb.h>
 #include <opentelemetry/proto/metrics/v1/metrics.pb.h>
 #include <opentelemetry/proto/resource/v1/resource.pb.h>
 
 #include "binary_sensor_metric.h"
+#include "esphome/core/string_ref.h"
 #include "number_metric.h"
 #include "select_metric.h"
 #include "sensor_metric.h"
@@ -26,8 +28,8 @@ bool nanopb_encode_scope_metrics(pb_ostream_t* stream, const pb_field_t* field, 
     if (esphome_metric->get_samples().empty()) continue;
     opentelemetry_proto_metrics_v1_ScopeMetrics scope_metric = opentelemetry_proto_metrics_v1_ScopeMetrics_init_zero;
     scope_metric.has_scope = true;
-    scope_metric.scope.attributes.arg = (void*)(&(esphome_metric->get_attributes()));
-    scope_metric.scope.attributes.funcs.encode = nanopb_encode_attributes;
+    scope_metric.scope.attributes.arg = (void*) esphome_metric->get_attributes();
+    scope_metric.scope.attributes.funcs.encode = nanopb_encode_c_str_attributes;
     scope_metric.metrics.arg = esphome_metric;
     scope_metric.metrics.funcs.encode = esphome_metric->get_nanopb_encoder();
 
@@ -52,7 +54,7 @@ bool nanopb_encode_resource_metrics(pb_ostream_t* stream, const pb_field_t* fiel
   resource_metrics.has_resource = true;
   resource_metrics.resource.dropped_attributes_count = 0;
   resource_metrics.resource.attributes.arg = metrics_recorder->get_resource_attributes();
-  resource_metrics.resource.attributes.funcs.encode = nanopb_encode_attributes;
+  resource_metrics.resource.attributes.funcs.encode = nanopb_encode_c_str_attributes;
   resource_metrics.scope_metrics.arg = metrics_recorder;
   resource_metrics.scope_metrics.funcs.encode = nanopb_encode_scope_metrics;
 
@@ -71,14 +73,14 @@ bool nanopb_encode_resource_metrics(pb_ostream_t* stream, const pb_field_t* fiel
 
 MetricsRecorder::MetricsRecorder(http_request::HttpRequestComponent* http, bool enable_sample_on_change, uint32_t sample_interval,
                                  uint_fast16_t max_samples_per_metric, MetricsAutoSensorDetection autodetection, bool autodetect_text_sensors,
-                                 bool name_from_device_class) {
+                                 MetricsNamingScheme naming_scheme) {
   this->http = http;
   this->enable_sample_on_change = enable_sample_on_change;
   this->sample_interval = sample_interval;
   this->max_samples_per_metric = max_samples_per_metric;
   this->autodetection = autodetection;
   this->autodetect_text_sensors = autodetect_text_sensors;
-  this->name_from_device_class = name_from_device_class;
+  this->naming_scheme = naming_scheme;
 }
 
 void MetricsRecorder::setup() {
@@ -98,7 +100,7 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring sensor: %s", obj->get_name().c_str());
-          BinarySensorMetric* metric = new BinarySensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          BinarySensorMetric* metric = new BinarySensorMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
           this->metrics.push_back(metric);
         }
       }
@@ -111,7 +113,7 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring sensor: %s", obj->get_name().c_str());
-          SensorMetric* metric = new SensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          SensorMetric* metric = new SensorMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
           this->metrics.push_back(metric);
         }
       }
@@ -124,7 +126,7 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring number: %s", obj->get_name().c_str());
-          NumberMetric* metric = new NumberMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          NumberMetric* metric = new NumberMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
           this->metrics.push_back(metric);
         }
       }
@@ -137,7 +139,7 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring select: %s", obj->get_name().c_str());
-          SelectMetric* metric = new SelectMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          SelectMetric* metric = new SelectMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
           this->metrics.push_back(metric);
         }
       }
@@ -150,7 +152,7 @@ void MetricsRecorder::setup() {
         // Check if the sensor was not manually defined
         if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
           ESP_LOGV(TAG, "Monitoring switch: %s", obj->get_name().c_str());
-          SwitchMetric* metric = new SwitchMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+          SwitchMetric* metric = new SwitchMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
           this->metrics.push_back(metric);
         }
       }
@@ -164,7 +166,7 @@ void MetricsRecorder::setup() {
           // Check if the sensor was not manually defined
           if (std::none_of(this->metrics.begin(), this->metrics.end(), [&obj](Metric* m) { return m->get_entity() == obj; })) {
             ESP_LOGV(TAG, "Monitoring text_sensor: %s", obj->get_name().c_str());
-            TextSensorMetric* metric = new TextSensorMetric(this, obj, this->name_from_device_class, this->max_samples_per_metric);
+            TextSensorMetric* metric = new TextSensorMetric(this, obj, this->naming_scheme, this->max_samples_per_metric);
             this->metrics.push_back(metric);
           }
         }
@@ -195,16 +197,16 @@ void MetricsRecorder::dump_config() {
 
   ESP_LOGCONFIG(TAG, "    Resource attributes:");
   for (auto& [key, value] : this->resource_attributes) {
-    ESP_LOGCONFIG(TAG, "      %s=%s", key.c_str(), value.c_str());
+    ESP_LOGCONFIG(TAG, "      %s=%s", key, value);
   }
 
   ESP_LOGCONFIG(TAG, "    Entity metrics:");
   for (auto* esphome_metric : this->get_metrics()) {
     ESP_LOGCONFIG(TAG, "      %s", esphome_metric->get_entity()->get_name().c_str());
-    ESP_LOGCONFIG(TAG, "        Name: %s", esphome_metric->get_name()->c_str());
+    ESP_LOGCONFIG(TAG, "        Name: %s", esphome_metric->get_name());
     ESP_LOGCONFIG(TAG, "        Scope attributes:");
-    for (auto& [key, value] : esphome_metric->get_attributes()) {
-      ESP_LOGCONFIG(TAG, "          %s=%s", key.c_str(), value.c_str());
+    for (auto& [key, value] : *(esphome_metric->get_attributes())) {
+      ESP_LOGCONFIG(TAG, "          %s=%s", key, value);
     }
   }
 }
@@ -231,20 +233,23 @@ void MetricsRecorder::loop() {
 
 // void OTEL::set_protocol( const std::string& protocol ) {}
 
-void MetricsRecorder::set_endpoint(const std::string& endpoint) { this->endpoint = endpoint + "/v1/metrics"; }
+void MetricsRecorder::set_endpoint(const char* endpoint) {
+  this->endpoint = endpoint;
+  this->endpoint += "/v1/metrics";
+}
 
-void MetricsRecorder::add_header(const std::string& header_key, const std::string& header_value) {
+void MetricsRecorder::add_header(const char* header_key, const char* header_value) {
   http_request::Header header;
   header.name = header_key;
   header.value = header_value;
   this->headers.push_back(header);
 }
 
-void MetricsRecorder::add_resource_attribute(const std::string& attr_key, const std::string& attr_value) {
+void MetricsRecorder::add_resource_attribute(const char* attr_key, const char* attr_value) {
   this->resource_attributes.insert_or_assign(attr_key, attr_value);
 }
 
-std::map<std::string, std::string>* MetricsRecorder::get_resource_attributes() { return &this->resource_attributes; }
+std::map<const char*, const char*>* MetricsRecorder::get_resource_attributes() { return &this->resource_attributes; }
 
 void MetricsRecorder::add_metric(Metric* metric) { this->metrics.push_back(metric); }
 

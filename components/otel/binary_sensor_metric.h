@@ -15,7 +15,7 @@ namespace otel {
 
 class BinarySensorMetric : public Metric {
  public:
-  BinarySensorMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, bool name_from_device_class, uint_fast16_t max_samples);
+  BinarySensorMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;

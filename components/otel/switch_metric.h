@@ -15,7 +15,7 @@ namespace otel {
 
 class SwitchMetric : public Metric {
  public:
-  SwitchMetric(MetricsRecorder* otel, switch_::Switch* switch_, bool name_from_device_class, uint_fast16_t max_samples);
+  SwitchMetric(MetricsRecorder* otel, switch_::Switch* switch_, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;

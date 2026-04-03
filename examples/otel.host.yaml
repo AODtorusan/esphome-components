@@ -104,7 +104,7 @@ otel:
     max_samples: 100 # per metric
     autodetection: all
     autodetect_text_sensors: true
-    name_from_device_class: true
+    naming_scheme: device_class
     sensors:
       sensor_internal:
         name: test

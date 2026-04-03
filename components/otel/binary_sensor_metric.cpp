@@ -15,8 +15,8 @@ namespace otel {
 
 static const char* const TAG = "OTLP.BinarySensorMetric";
 
-BinarySensorMetric::BinarySensorMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, sensor, name_from_device_class, max_samples) {
+BinarySensorMetric::BinarySensorMetric(MetricsRecorder* otel, binary_sensor::BinarySensor* sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples)
+    : Metric(otel, sensor, "binary_sensor", naming_scheme, max_samples) {
   this->sensor = sensor;
 }
 

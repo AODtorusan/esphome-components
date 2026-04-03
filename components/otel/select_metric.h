@@ -15,7 +15,7 @@ namespace otel {
 
 class SelectMetric : public Metric {
  public:
-  SelectMetric(MetricsRecorder* otel, select::Select* sensor, bool name_from_device_class, uint_fast16_t max_samples);
+  SelectMetric(MetricsRecorder* otel, select::Select* sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;

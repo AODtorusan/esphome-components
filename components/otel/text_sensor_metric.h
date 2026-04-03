@@ -15,7 +15,7 @@ namespace otel {
 
 class TextSensorMetric : public Metric {
  public:
-  TextSensorMetric(MetricsRecorder* otel, text_sensor::TextSensor* sensor, bool name_from_device_class, uint_fast16_t max_samples);
+  TextSensorMetric(MetricsRecorder* otel, text_sensor::TextSensor* sensor, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples);
 
   EntityBase* get_entity() override;
   void install_sample_hook() override;

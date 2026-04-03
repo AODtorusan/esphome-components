@@ -15,8 +15,8 @@ namespace otel {
 
 static const char *const TAG = "OTLP.NumberMetric";
 
-NumberMetric::NumberMetric(MetricsRecorder *otel, number::Number *number, bool name_from_device_class, uint_fast16_t max_samples)
-    : Metric(otel, number, name_from_device_class, max_samples) {
+NumberMetric::NumberMetric(MetricsRecorder *otel, number::Number *number, MetricsNamingScheme naming_scheme, uint_fast16_t max_samples)
+    : Metric(otel, number, "number", naming_scheme, max_samples) {
   this->number = number;
 }
 
