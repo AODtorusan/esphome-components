@@ -17,11 +17,12 @@ static const char* const TAG = "OTLP.metric";
 
 static const char* STR_NAME_UNKNOWN = "unknown";
 
-static const char* STR_TAG_ENTITY_NAME = "entity_name";
-static const char* STR_TAG_ENTITY_TYPE = "entity_type";
-static const char* STR_TAG_UNIT = "unit";
+static const char* STR_TAG_ENTITY_NAME  = "entity_name";
+static const char* STR_TAG_ENTITY_ID    = "entity_id";
+static const char* STR_TAG_ENTITY_TYPE  = "entity_type";
+static const char* STR_TAG_UNIT         = "unit";
 static const char* STR_TAG_DEVICE_CLASS = "device_class";
-static const char* STR_TAG_STATE_CLASS = "state_class";
+static const char* STR_TAG_STATE_CLASS  = "state_class";
 
 bool nanopb_encode_dpt(pb_ostream_t* stream, const pb_field_t* field, void* const* arg) {
   Metric* metric = (Metric*)(*arg);
@@ -79,6 +80,10 @@ Metric::Metric(MetricsRecorder* otel, EntityBase* entity, const char* entity_typ
   const char* dc = entity->get_device_class_to(dc_buf);
   device_class = dc;
 
+  char oid_buf[OBJECT_ID_MAX_LEN];
+  StringRef oid = entity->get_object_id_to(oid_buf);
+  object_id = oid;
+
   switch (naming_scheme) {
     case MetricsNamingScheme::ENTITY_TYPE:
       this->set_name(entity_type);
@@ -96,6 +101,7 @@ Metric::Metric(MetricsRecorder* otel, EntityBase* entity, const char* entity_typ
       break;
   }
   this->add_attribute(STR_TAG_ENTITY_NAME, entity->get_name().c_str());
+  this->add_attribute(STR_TAG_ENTITY_ID, object_id.c_str());
   this->add_attribute(STR_TAG_ENTITY_TYPE, entity_type);
 
   if (!entity->get_unit_of_measurement_ref().empty()) {

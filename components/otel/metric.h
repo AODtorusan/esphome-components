@@ -45,6 +45,7 @@ class Metric {
   MetricsRecorder* otel;
   const char* name;
   std::string device_class; // TODO this should not be stored here as a copy
+  std::string object_id; // TODO this should not be stored here as a copy
   std::map<const char*, const char*> attributes;
   std::list<std::pair<uint64_t, float>> samples;
   uint_fast16_t max_samples = 50;
