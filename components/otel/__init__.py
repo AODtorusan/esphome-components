@@ -177,7 +177,9 @@ async def to_code(config):
             else:
                 raise ValueError(f"Could not determine the proper metric type to create for this entity type! '{sensor_var}' of type '{sensor_var_type}'")
 
-            metric = cg.Pvariable(sensor_config[CONF_ID], cls.new(metricsRecorder, sensor_var, naming_scheme, sample_depth ))
+            metric_id = sensor_config[CONF_ID]
+            metric_id.type = cls # Set the concrete type in the ID correctly as thats used for new now? See https://github.com/esphome/esphome/commit/cd05462e9fc4a295b523412c04fa17acb6c86171#diff-aab8418f271a6750658ca053b5a32a8668972d3b25c2395f485ebce0f8fbb5a2R586
+            metric = cg.Pvariable(metric_id, cls.new(metricsRecorder, sensor_var, naming_scheme, sample_depth ))
             cg.add(metricsRecorder.add_metric(metric))
             if sample_on_change:
                 cg.add(metric.install_sample_hook())
